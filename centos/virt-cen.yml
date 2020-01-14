@@ -1,0 +1,40 @@
+---
+- name: create VMs
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  become: true
+  vars_prompt:
+    - name: NAMA
+      prompt: "Enter VM name"
+      default: "c7"
+      private: no
+#  vars_files:
+#    - vms.yml
+
+  tasks:
+    - name: get VM disks
+      command: "ls /var/lib/libvirt/images"
+      register: disks
+      changed_when: "disks.rc != 0"
+
+    - name: get list of VMs
+      virt:
+        command: "list_vms"
+      register: vms
+
+    - name: create vm
+      command: >
+                virt-install --name {{ NAMA }}
+                --cpu host --vcpus 1 --ram 900
+                --disk path=$NAMA.qcow,size=6,bus=scsi,discard='unmap',format='qcow2'
+                --controller type=scsi,model=virtio-scsi
+                --console pty,target_type=serial
+                --location /iso/CentOS-7.0-1406-x86_64-Minimal.iso
+                --initrd-inject=cenks.cfg --extra-args "inst.ks=file:/cenks.cfg"
+                --noautoconsole
+
+#    - name: start vm
+#      virt:
+#        name: "{{ NAMA }}"
+#        state: running

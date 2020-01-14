@@ -1,0 +1,18 @@
+---
+- name: get VMs IP
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  become: true
+  vars_prompt:
+    - name: NAMA
+      prompt: "Enter VM name"
+      default: "c7"
+      private: no
+
+  tasks:
+    - name: get vms ip
+      command: virsh domifaddr {{ NAMA }}
+      register: vmip
+    - debug: var=vmip.stdout_lines
+
